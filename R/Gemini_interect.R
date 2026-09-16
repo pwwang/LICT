@@ -3,14 +3,7 @@
 #' @export
 
 Gemini_interact = function(positive_gene = NULL,negative_gene = NULL){
-  reticulate::py_run_string("
-def chat_response(user_input):
-    response = chat.send_message(user_input)
-    markdown=to_markdown(response.text)
-    plain_text = markdown.data
-    return plain_text
-")
-
+  .lict_gemini_setup()
     # 如果任一不为空，执行以下代码positive_gene is expressed in the
   user_input <- Gemini_generate_gene_text(positive_gene = positive_gene, negative_gene = negative_gene)
   result = py$chat_response(user_input)

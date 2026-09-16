@@ -4,29 +4,28 @@
 #' @export
 
 ERNIE_input <- function(input,topgenenumber, species, tissuename) {
+  .lict_py_bootstrap()
+  api_key <- .lict_key("ERNIE", "ERNIE_api_key")
+  secret_key <- .lict_key("ERNIE (secret key)", "ERNIE_secret_key")
   reticulate::py_run_string("
-import subprocess
-import importlib
-import os
-
-def install_module(module_name):
-    try:
-        # 尝试导入指定模块
-        importlib.import_module(module_name)
-    except ImportError:
-        # 如果导入失败，使用 pip 安装该模块
-        subprocess.check_call(['pip', 'install', module_name])
-install_module('requests')
-
-import requests
 import json
+requests = lict_import('requests', 'ERNIE')
 
-payload = {
+payload = globals().get('payload') or {
     'user_id': 'python',
     'messages': [],
     'disable_search': False,
     'enable_citation': False
 }
+
+def lict_ernie_configure(api_key, secret_key):
+    token = requests.post(
+        'https://aip.baidubce.com/oauth/2.0/token',
+        params={'grant_type': 'client_credentials', 'client_id': api_key, 'client_secret': secret_key}
+    ).json().get('access_token')
+    if not token:
+        raise RuntimeError('ERNIE access token request failed; check ERNIE_api_key / ERNIE_secret_key.')
+    globals()['url'] = 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=' + str(token)
 
 def add_ERNIE_message(role, content):
     message = {
@@ -44,14 +43,6 @@ def add_ERNIE_message_2(role, content):
     payload['messages'].append(message)
     if len(payload['messages']) > 2:
         payload['messages'] = payload['messages'][:-2]
-
-def get_access_ERNIE_token(ERNIE_api_key, ERNIE_secret_key):
-    url = 'https://aip.baidubce.com/oauth/2.0/token'
-    params = {'grant_type': 'client_credentials', 'client_id': ERNIE_api_key, 'client_secret': ERNIE_secret_key}
-    return str(requests.post(url, params=params).json().get('access_token'))
-
-access_ERNIE_token = get_access_ERNIE_token(ERNIE_api_key, ERNIE_secret_key)
-url = 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=' + access_ERNIE_token
 
 def send_request(user_input):
     add_ERNIE_message('user', user_input)
@@ -71,6 +62,7 @@ def send_request_2(user_input):
     add_ERNIE_message_2('assistant', result)
     return result
 ")
+  py$lict_ernie_configure(api_key, secret_key)
   top_markers <- input %>% dplyr::group_by(cluster) %>% dplyr::top_n(n = topgenenumber, wt = avg_log2FC)
   cluster_genes <- top_markers %>%
     dplyr::group_by(cluster) %>%

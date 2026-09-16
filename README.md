@@ -11,11 +11,17 @@ To install the latest version of LICT package via Github, run the following comm
 remotes::install_github("Glowworm-cell/LICT")
 ```
 
+This fork tracks the current Python LLM SDKs and is installable with
+`remotes::install_github("pwwang/LICT")`. See [MODERNIZATION.md](MODERNIZATION.md)
+for what changed and how it was verified.
+
 ## Necessary preparation before start
 
 The recommended version for Python is 3.9 or higher, and for R, it is 4.2 or above.
 <br>**Necessary Python modules**: 
-<br>anthropic(version=0.25.8); <br>openai(version=0.28.1); <br>pathlib(version>=1.0.1); <br>textwrap; <br>ipython(version=7.31.1); <br>google-generativeai(version=0.5.2)
+<br>openai (>= 1.0, for the GPT provider — declared through `reticulate::py_require()` and provisioned by reticulate on first use); <br>anthropic (Claude); <br>google-genai (Gemini); <br>requests (ERNIE and Llama 3)
+<br>Only the modules for the providers you actually use are needed: a provider whose module or API key is missing is skipped with a message naming the missing package or variable, e.g. `Python package 'anthropic' is required by the Claude provider but is not installed. Install it with reticulate::py_install('anthropic').`
+<br>API keys are read from the R environment (`Sys.setenv()` or `readRenviron()`), not from Python; run `reticulate::py_install("google-genai")` (or the relevant module) once for the providers you want.
 
 ##  🚀 Quick start with Seurat pipeline 
 
@@ -28,27 +34,21 @@ librar(Seurat)
 seurat_obj = readRDS('../../gc.rds')
 
 # IMPORTANT! Assign your API key. See Vignette for details
+# Only the keys of the providers you want to use need to be set; the others are
+# skipped with a message naming the missing variable.
 Sys.setenv(Llama3_api_key = 'Replace_your_key')
 Sys.setenv(Llama3_secret_key = 'Replace_your_key')
 Sys.setenv(ERNIE_api_key = 'Replace_your_key')
 Sys.setenv(ERNIE_secret_key = 'Replace_your_key')
 Sys.setenv(GEMINI_api_key = 'Replace_your_key')
-Sys.setenv(openai.api_key = 'Replace_your_key')
 Sys.setenv(ANTHROPIC_API_KEY = "Replace_your_key")
 
-# Load API key to Python
-
-reticulate::py_run_string("
-import os
-import openai
-ERNIE_api_key = os.environ['ERNIE_api_key']
-ERNIE_secret_key = os.environ['ERNIE_secret_key']
-GEMINI_api_key = os.environ['GEMINI_api_key']
-openai.api_key = os.environ['openai.api_key']
-Llama3_api_key = os.environ['Llama3_api_key']
-Llama3_secret_key = os.environ['Llama3_secret_key']
-ANTHROPIC_API_KEY = os.environ['ANTHROPIC_API_KEY']
-")
+# OpenAI keys are looked up in this order: OPENAI_API_KEY, openai_api_key,
+# openai.api_key. OPENAI_BASE_URL and OPENAI_MODEL (default gpt-4-turbo-preview)
+# are honoured when set, which is what makes an OpenAI-compatible endpoint work.
+Sys.setenv(OPENAI_API_KEY = 'Replace_your_key')
+Sys.setenv(OPENAI_BASE_URL = 'Replace_with_your_endpoint')  # optional
+Sys.setenv(OPENAI_MODEL = 'Replace_with_your_model')        # optional
 
 # Load packages
 library(LICT)

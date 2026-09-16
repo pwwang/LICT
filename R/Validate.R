@@ -5,38 +5,9 @@
 #'
 #'
 Validate <- function(LLM_res, seurat_obj, Percent,species) {
-  reticulate::py_run_string('
-import subprocess
-import openai
-import json
-
-chat_history_validate = []  # 聊天历史记录列表
-
-def chat_with_gpt4_validate(prompt):
-    global chat_history_validate  # 声明为全局变量
-    try:
-        # 添加用户的新消息到历史记录
-        chat_history_validate.append({"role": "user", "content": prompt})
-
-        # 限制历史记录长度为最后的两个对话：一个用户，一个系统
-        if len(chat_history_validate) > 2:
-            chat_history_validate = chat_history_validate[-2:]
-
-        # 调用 ChatGPT-4 API
-        response = openai.ChatCompletion.create(
-            model="gpt-4-turbo-preview",  # 确保使用正确的模型名称
-            messages=chat_history_validate
-        )
-
-        # 获取 GPT-4 的回应并添加到历史记录
-        gpt_response = response.choices[0].message["content"]
-        chat_history_validate.append({"role": "system", "content": gpt_response})
-
-        # 打印聊天回复
-        return gpt_response
-    except Exception as e:
-        return str(e)
-')
+  .lict_openai_setup()
+  # 每次调用 Validate 都从新一轮对话开始（与旧代码中 py_run_string 重置历史记录一致）
+  py$lict_openai_reset("validate")
   if (!is.data.frame(LLM_res)) {
     print('list')
     for(n in names(LLM_res)){
