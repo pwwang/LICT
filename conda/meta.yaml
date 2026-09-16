@@ -1,0 +1,41 @@
+package:
+  name: r-lict
+  version: 0.2.0
+
+source:
+  path: ..
+
+build:
+  number: 1
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  host:
+    # Imports
+    - r-base
+    - r-dplyr
+    - r-magrittr
+    - r-reticulate
+    - r-roxygen2
+    - r-stringr
+
+  run:
+    # Imports
+    - r-base
+    - r-dplyr
+    - r-magrittr
+    - r-reticulate
+    - r-roxygen2
+    - r-stringr
+
+test:
+  commands:
+    - $R -e "library('LICT')"
+
+about:
+  home: https://github.com/pwwang/LICT
+  license: MIT
+  summary: Modernized LICT, cell type annotation tool for scRNA-seq data.
+  license_family: MIT
